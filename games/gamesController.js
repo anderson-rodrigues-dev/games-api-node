@@ -8,8 +8,9 @@ const auth = require("../middlewares/auth");
 
 // Routes
 Router.get("/games", auth, (req, res) => {
+    
     Game.findAll().then(games => {
-        res.status(200).json(games);
+        res.status(200).json(gamess);
     }).catch(err => {
         res.status(500).json({error: err});
     });
@@ -20,6 +21,23 @@ Router.get("/game/:id", auth, (req, res) => {
     if(isNaN(id)){
         res.status(400).json({error: "ID is not a number"});
     } else {
+        var HATEOAS = [
+            {
+                href: `http://localhost:8080/game/${id}`,
+                method: "DELETE",
+                rel: "delete_game"
+            },
+            {
+                href: `http://localhost:8080/game/${id}`,
+                method: "GET",
+                rel: "get_game"
+            },
+            {
+                href: `http://localhost:8080/games`,
+                method: "GET",
+                rel: "get_games"
+            }
+        ];
         Game.findOne({
             where: {
                 id:  req.params.id
@@ -28,7 +46,7 @@ Router.get("/game/:id", auth, (req, res) => {
             if(!game){
                 res.status(404).json({error: "No game found with that ID"});
             } else {
-                res.status(200).json(game);
+                res.status(200).json({gam: game, _links: HATEOAS});
             }
         }).catch(err => {
             res.status(500).json(err);
